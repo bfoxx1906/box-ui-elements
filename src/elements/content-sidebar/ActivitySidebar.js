@@ -1122,6 +1122,17 @@ class ActivitySidebar extends React.PureComponent<Props, State> {
             history.push(getAnnotationsPath(annotationFileVersionId, nextActiveAnnotationId));
         }
 
+        // add a single annotation to local storage with the id as the key
+        // if (nextActiveAnnotationId) {
+        //     try {
+        //         localStorage.setItem(annotation.id, JSON.stringify(annotation));
+        //     } catch (e) {
+        //         // handle localStorage errors (e.g., quota exceeded)
+        //         // Optionally log or ignore
+        //     }
+        // }
+
+        // console.log('handleAnnotationSelect', annotation);
         onAnnotationSelect(annotation);
     };
 

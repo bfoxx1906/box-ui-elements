@@ -21,7 +21,7 @@ import { ACTIVITY_TARGETS } from '../../../common/interactionTargets';
 import { COMMENT_STATUS_RESOLVED, PLACEHOLDER_USER } from '../../../../constants';
 import type { Annotation, AnnotationPermission, FeedItemStatus } from '../../../../common/types/feed';
 import type { GetAvatarUrlCallback, GetProfileUrlCallback } from '../../../common/flowTypes';
-import type { SelectorItems, User } from '../../../../common/types/core';
+import type { SelectorItems, User, BoxItem } from '../../../../common/types/core';
 
 import IconAnnotation from '../../../../icons/two-toned/IconAnnotation';
 
@@ -31,6 +31,7 @@ import type { OnAnnotationEdit, OnAnnotationStatusChange } from '../comment/type
 
 type Props = {
     currentUser?: User,
+    file?: BoxItem,
     getAvatarUrl: GetAvatarUrlCallback,
     getMentionWithQuery?: (searchStr: string) => void,
     getUserProfileUrl?: GetProfileUrlCallback,
@@ -47,6 +48,7 @@ type Props = {
 const AnnotationActivity = ({
     currentUser,
     item,
+    file,
     getAvatarUrl,
     getMentionWithQuery,
     getUserProfileUrl,
@@ -112,7 +114,11 @@ const AnnotationActivity = ({
 
     const createdAtTimestamp = new Date(created_at).getTime();
     const createdByUser = created_by || PLACEHOLDER_USER;
-    const linkMessage = isCurrentVersion ? messages.annotationActivityPageItem : messages.annotationActivityVersionLink;
+    const messageToUse =
+        target.location.type === 'page'
+            ? messages.annotationActivityPageItem
+            : messages.annotationActivityTimeStampItem;
+    const linkMessage = isCurrentVersion ? messageToUse : messages.annotationActivityVersionLink;
     const linkValue = isCurrentVersion ? target.location.value : getProp(file_version, 'version_number');
     const message = (description && description.message) || '';
     const activityLinkMessage = isFileVersionUnavailable
@@ -153,6 +159,8 @@ const AnnotationActivity = ({
                                 id={createdByUser.id}
                                 name={createdByUser.name}
                             />
+
+                            <div className="bcs-AnnotationActivity-target">{target.location.type}</div>
                         </div>
                         <div className="bcs-AnnotationActivity-timestamp">
                             <ActivityTimestamp date={createdAtTimestamp} />
@@ -172,6 +180,7 @@ const AnnotationActivity = ({
                             <CommentForm
                                 className="bcs-AnnotationActivity-editor"
                                 entityId={id}
+                                file={file}
                                 getAvatarUrl={getAvatarUrl}
                                 getMentionWithQuery={getMentionWithQuery}
                                 isEditing={isEditing}
