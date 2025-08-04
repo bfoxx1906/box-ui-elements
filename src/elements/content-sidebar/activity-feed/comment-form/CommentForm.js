@@ -19,8 +19,8 @@ import Form from '../../../../components/form-elements/form/Form';
 import Media from '../../../../components/media';
 import messages from './messages';
 import type { GetAvatarUrlCallback } from '../../../common/flowTypes';
-import type { SelectorItems, User } from '../../../../common/types/core';
-
+import type { SelectorItems, User, BoxItem } from '../../../../common/types/core';
+import { FILE_EXTENSIONS } from '../../../common/item/constants';
 import './CommentForm.scss';
 
 type Props = {
@@ -28,6 +28,7 @@ type Props = {
     contactsLoaded?: boolean,
     createComment?: Function,
     entityId?: string,
+    file?: BoxItem,
     getAvatarUrl?: GetAvatarUrlCallback,
     getMentionWithQuery?: Function,
     intl: IntlShape,
@@ -136,6 +137,8 @@ class CommentForm extends React.Component<Props, State> {
             'bcs-is-open': isOpen,
         });
 
+        const { file } = this.props;
+        const isVideo = FILE_EXTENSIONS.video.includes(file?.extension);
         return (
             <Media className={inputContainerClassNames}>
                 {!isEditing && !!user && (
@@ -154,6 +157,7 @@ class CommentForm extends React.Component<Props, State> {
                             hideLabel
                             isDisabled={isDisabled}
                             isRequired={isOpen}
+                            isVideo={isVideo}
                             name="commentText"
                             label={formatMessage(messages.commentLabel)}
                             description={formatMessage(messages.atMentionTipDescription)}
@@ -169,7 +173,7 @@ class CommentForm extends React.Component<Props, State> {
                             </div>
                         )}
 
-                        {isOpen && <CommentFormControls onCancel={onCancel} />}
+                        {isOpen && <CommentFormControls isVideo={isVideo} onCancel={onCancel} />}
                     </Form>
                 </Media.Body>
             </Media>
