@@ -153,6 +153,8 @@ class CommentForm extends React.Component<CommentFormProps, State> {
             'bcs-is-open': isOpen,
         });
 
+        const { file } = this.props;
+        const isVideo = FILE_EXTENSIONS.video.includes(file?.extension);
         return (
             <Media className={inputContainerClassNames}>
                 {!isEditing && !!user && (
@@ -172,6 +174,7 @@ class CommentForm extends React.Component<CommentFormProps, State> {
                             timeStampedCommentsEnabled={allowVideoTimeStamps}
                             isDisabled={isDisabled}
                             isRequired={isOpen}
+                            isVideo={isVideo}
                             name="commentText"
                             label={formatMessage(messages.commentLabel)}
                             timeStampLabel={formatMessage(messages.commentTimestampLabel)}
@@ -188,7 +191,7 @@ class CommentForm extends React.Component<CommentFormProps, State> {
                             </div>
                         )}
 
-                        {isOpen && <CommentFormControls onCancel={onCancel} />}
+                        {isOpen && <CommentFormControls isVideo={isVideo} onCancel={onCancel} />}
                     </Form>
                 </Media.Body>
             </Media>
