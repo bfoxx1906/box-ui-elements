@@ -1,6 +1,8 @@
+/* eslint-disable jsx-a11y/media-has-caption */
+/* eslint-disable react/jsx-no-comment-textnodes */
 import * as React from 'react';
 import { mount, shallow } from 'enzyme';
-import { ContentState, EditorState } from 'draft-js';
+import { ContentState, EditorState, convertToRaw } from 'draft-js';
 import sinon from 'sinon';
 
 import DraftJSMentionSelector from '..';
@@ -252,10 +254,7 @@ describe('bcomponents/form-elements/draft-js-mention-selector/DraftJSMentionSele
                 });
             } else {
                 test('should not call checkValidity when called', () => {
-                    sandbox
-                        .mock(instance)
-                        .expects('checkValidity')
-                        .never();
+                    sandbox.mock(instance).expects('checkValidity').never();
                 });
             }
         });
@@ -323,17 +322,11 @@ describe('bcomponents/form-elements/draft-js-mention-selector/DraftJSMentionSele
 
             if (isTouched) {
                 test('should update state', () => {
-                    sandbox
-                        .mock(instance)
-                        .expects('setState')
-                        .withArgs({ error: err });
+                    sandbox.mock(instance).expects('setState').withArgs({ error: err });
                 });
             } else {
                 test('should not update state', () => {
-                    sandbox
-                        .mock(instance)
-                        .expects('setState')
-                        .never();
+                    sandbox.mock(instance).expects('setState').never();
                 });
             }
         });
@@ -366,6 +359,207 @@ describe('bcomponents/form-elements/draft-js-mention-selector/DraftJSMentionSele
             const instance = wrapper.instance();
 
             expect(instance.isEditorStateEmpty(editorState)).toEqual(expectedResult);
+        });
+    });
+
+    describe('getVideoTimestamp()', () => {
+        afterEach(() => {
+            jest.restoreAllMocks();
+        });
+
+        test('should return the correct video timestamp', () => {
+            jest.spyOn(document, 'querySelector').mockImplementation(() => {
+                return {
+                    querySelector: () => {
+                        return { currentTime: 70 };
+                    },
+                };
+            });
+            const wrapper = shallow(<DraftJSMentionSelector {...requiredProps} />);
+            const instance = wrapper.instance();
+            expect(instance.getVideoTimestamp()).toEqual('00:01:10');
+        });
+
+        test('should return the correct videoe timestamp if it has not been started yet', () => {
+            const wrapper = shallow(<DraftJSMentionSelector {...requiredProps} />);
+            jest.spyOn(document, 'querySelector').mockImplementation(() => {
+                return {
+                    querySelector: () => {
+                        return <video src="http://dummy.mp4" />;
+                    },
+                };
+            });
+            const instance = wrapper.instance();
+            expect(instance.getVideoTimestamp()).toEqual('00:00:00');
+        });
+
+        test('shoudl return 00:00:00 if the video is not found', () => {
+            jest.spyOn(document, 'querySelector').mockImplementation(() => {
+                return {
+                    querySelector: () => {
+                        return null;
+                    },
+                };
+            });
+            const wrapper = shallow(<DraftJSMentionSelector {...requiredProps} />);
+            const instance = wrapper.instance();
+            expect(instance.getVideoTimestamp()).toEqual('00:00:00');
+        });
+
+        test('should return the correct precision of the timestamp', () => {
+            jest.spyOn(document, 'querySelector').mockImplementation(() => {
+                return {
+                    querySelector: () => {
+                        return { currentTime: 176.34 };
+                    },
+                };
+            });
+            const wrapper = shallow(<DraftJSMentionSelector {...requiredProps} />);
+            const instance = wrapper.instance();
+            expect(instance.getVideoTimestamp()).toEqual('00:02:56');
+        });
+    });
+    describe('video timestamp toggle', () => {
+        const getTimeStampedEnableComponent = () => {
+            const props = { ...requiredProps, timeStampedCommentsEnabled: true, isRequired: true };
+            return shallow(<DraftJSMentionSelector {...props} />);
+        };
+
+        beforeEach(() => {
+            jest.spyOn(document, 'querySelector').mockImplementation(() => {
+                return {
+                    querySelector: () => {
+                        return { currentTime: 70 };
+                    },
+                };
+            });
+        });
+
+        afterEach(() => {
+            jest.restoreAllMocks();
+        });
+
+        test('should show timestamp toggle if timeStampedCommentsEnabled is true and isRequired is true', () => {
+            const props = { ...requiredProps, timeStampedCommentsEnabled: true, isRequired: true };
+            const wrapper = shallow(<DraftJSMentionSelector {...props} />);
+            expect(wrapper.find('Toggle').length).toEqual(1);
+            expect(wrapper.find('Toggle').prop('isOn')).toEqual(false);
+        });
+
+        test('should not show timestamp toggle if timeStampedCommentsEnabled is false', () => {
+            const wrapper = shallow(<DraftJSMentionSelector {...requiredProps} timeStampedCommentsEnabled={false} />);
+            expect(wrapper.find('Toggle').length).toEqual(0);
+        });
+
+        test('should not show timestamp toggle if timeStampedCommentsEnabled is true and isRequired is false', () => {
+            const props = { ...requiredProps, timeStampedCommentsEnabled: true, isRequired: false };
+            const wrapper = shallow(<DraftJSMentionSelector {...props} />);
+            expect(wrapper.find('Toggle').length).toEqual(0);
+        });
+
+        test('should set timeStampPrepended state to true when the toggle is clicked', () => {
+            const wrapper = getTimeStampedEnableComponent();
+            const instance = wrapper.instance();
+            wrapper.find('Toggle').simulate('change', { target: { checked: true } });
+            expect(instance.state.timeStampPrepended).toEqual(true);
+        });
+
+        test('should add timestamp to the editor state when the toggle is clicked', () => {
+            const wrapper = getTimeStampedEnableComponent();
+            const instance = wrapper.instance();
+            wrapper.find('Toggle').simulate('change', { target: { checked: true } });
+            expect(instance.state.internalEditorState.getCurrentContent().getPlainText()).toContain('00:01:10');
+            expect(instance.state.timeStampPrepended).toEqual(true);
+        });
+
+        test('should remove timestamp from the editor state when the toggle is clicked off', () => {
+            const wrapper = getTimeStampedEnableComponent();
+            const instance = wrapper.instance();
+            wrapper.find('Toggle').simulate('change', { target: { checked: true } });
+            expect(instance.state.internalEditorState.getCurrentContent().getPlainText()).toContain('00:01:10');
+            wrapper.find('Toggle').simulate('change', { target: { checked: false } });
+            expect(instance.state.internalEditorState.getCurrentContent().getPlainText()).not.toContain('00:01:10');
+            expect(instance.state.timeStampPrepended).toEqual(false);
+        });
+
+        test('should add timestamp to the beginning of the editor state when the toggle is clicked on', () => {
+            const wrapper = getTimeStampedEnableComponent();
+            const instance = wrapper.instance();
+            instance.setState({
+                internalEditorState: EditorState.createWithContent(ContentState.createFromText('this is coool!!!')),
+            });
+            wrapper.find('Toggle').simulate('change', { target: { checked: true } });
+            expect(instance.state.internalEditorState.getCurrentContent().getPlainText()).toContain(
+                '00:01:10:  this is coool!!!',
+            );
+        });
+
+        test('should remove timestamp from the beginning of the editor state when the toggle is clicked off', () => {
+            const wrapper = getTimeStampedEnableComponent();
+            const instance = wrapper.instance();
+            instance.setState({
+                internalEditorState: EditorState.createWithContent(ContentState.createFromText('this is coool!!!')),
+            });
+            wrapper.find('Toggle').simulate('change', { target: { checked: true } });
+            wrapper.find('Toggle').simulate('change', { target: { checked: false } });
+            expect(instance.state.internalEditorState.getCurrentContent().getPlainText()).toEqual('this is coool!!!');
+        });
+
+        test('should add an UNEDITABLE_TEXT entity to the editor state when the toggle is clicked on', () => {
+            const wrapper = getTimeStampedEnableComponent();
+            const instance = wrapper.instance();
+            instance.setState({
+                internalEditorState: EditorState.createWithContent(ContentState.createFromText('this is coool!!!')),
+            });
+            wrapper.find('Toggle').simulate('change', { target: { checked: true } });
+            const rawContentState = convertToRaw(instance.state.internalEditorState.getCurrentContent());
+            const entity = rawContentState.entityMap[0];
+            expect(entity.type).toEqual('UNEDITABLE_TEXT');
+            expect(entity.data.timestamp).toEqual('00:01:10');
+        });
+
+        test('should remove the UNEDITABLE_TEXT entity from the editor state when the toggle is clicked off', () => {
+            const wrapper = getTimeStampedEnableComponent();
+            const instance = wrapper.instance();
+            instance.setState({
+                internalEditorState: EditorState.createWithContent(ContentState.createFromText('this is coool!!!')),
+            });
+            wrapper.find('Toggle').simulate('change', { target: { checked: true } });
+            wrapper.find('Toggle').simulate('change', { target: { checked: false } });
+            const rawContentState = convertToRaw(instance.state.internalEditorState.getCurrentContent());
+            expect(rawContentState.entityMap).toEqual({});
+        });
+
+        test('should render DraftTimestampItem when timestamp is added by the decorator', () => {
+            const wrapper = getTimeStampedEnableComponent();
+            const instance = wrapper.instance();
+            instance.setState({
+                internalEditorState: EditorState.createWithContent(ContentState.createFromText('this is coool!!!')),
+            });
+            wrapper.find('Toggle').simulate('change', { target: { checked: true } });
+            const rawContentState = convertToRaw(instance.state.internalEditorState.getCurrentContent());
+            const entity = rawContentState.entityMap[0];
+            expect(entity.type).toEqual('UNEDITABLE_TEXT');
+            expect(entity.data.timestamp).toEqual('00:01:10');
+
+            // Verify that the decorator strategy would match this entity
+            const contentState = instance.state.internalEditorState.getCurrentContent();
+            const firstBlock = contentState.getFirstBlock();
+            let entityFound = false;
+            firstBlock.findEntityRanges(
+                character => {
+                    const entityKey = character.getEntity();
+                    if (entityKey !== null && contentState.getEntity(entityKey).getType() === 'UNEDITABLE_TEXT') {
+                        entityFound = true;
+                        return true;
+                    }
+                    return false;
+                },
+                () => {},
+            );
+            expect(entityFound).toBe(true);
+            expect(instance.compositeDecorator).toBeDefined();
+            expect(typeof instance.compositeDecorator.getDecorations).toBe('function');
         });
     });
 });

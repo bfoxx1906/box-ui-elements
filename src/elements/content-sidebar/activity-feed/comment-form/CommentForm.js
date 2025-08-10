@@ -144,16 +144,16 @@ class CommentForm extends React.Component<CommentFormProps, State> {
 
         // Use feature config to determine if time stamped comments are enabled
         const isTimeStampedCommentsEnabled = timeStampedCommentsConfig?.enabled === true;
+        const { file } = this.props;
+        const isVideo = FILE_EXTENSIONS.video.includes(file?.extension);
+        const allowVideoTimeStamps = isVideo && isTimeStampedCommentsEnabled;
 
         const { commentEditorState } = this.state;
         const inputContainerClassNames = classNames('bcs-CommentForm', className, {
             'bcs-is-open': isOpen,
-            'bcs-time-stamped-comments': isTimeStampedCommentsEnabled,
+            'bcs-time-stamped-comments': allowVideoTimeStamps,
         });
 
-        const { file } = this.props;
-        const isVideo = FILE_EXTENSIONS.video.includes(file?.extension);
-        const allowVideoTimeStamps = isVideo && isTimeStampedCommentsEnabled;
         return (
             <Media className={inputContainerClassNames}>
                 {!isEditing && !!user && (
@@ -170,10 +170,9 @@ class CommentForm extends React.Component<CommentFormProps, State> {
                             contactsLoaded={contactsLoaded}
                             editorState={commentEditorState}
                             hideLabel
-                            timeStampedCommentsEnabled={isTimeStampedCommentsEnabled}
+                            timeStampedCommentsEnabled={allowVideoTimeStamps}
                             isDisabled={isDisabled}
                             isRequired={isOpen}
-                            allowVideoTimeStamps={allowVideoTimeStamps}
                             name="commentText"
                             label={formatMessage(messages.commentLabel)}
                             timeStampLabel={formatMessage(messages.commentTimestampLabel)}
