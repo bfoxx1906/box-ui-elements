@@ -46,6 +46,7 @@ type Props = {
     hideLabel?: boolean,
     isDisabled?: boolean,
     isRequired?: boolean,
+    allowVideoTimeStamps?: boolean,
     label: React.Node,
     maxLength?: number,
     mentionTriggers?: Array<string>,
@@ -61,6 +62,7 @@ type Props = {
     timeStampLabel?: string | null,
     timeStampedCommentsEnabled?: boolean,
     validateOnBlur?: boolean,
+    timeStampLabel?: string,
 };
 
 type State = {
@@ -75,6 +77,8 @@ class DraftJSMentionSelector extends React.Component<Props, State> {
         isRequired: false,
         onChange: noop,
         validateOnBlur: true,
+        isVideo: false,
+        timeStampedCommentsEnabled: false,
     };
 
     constructor(props: Props) {
@@ -351,6 +355,7 @@ class DraftJSMentionSelector extends React.Component<Props, State> {
     render() {
         const {
             className = '',
+            allowVideoTimeStamps,
             contactsLoaded,
             editorState: externalEditorState,
             hideLabel,
@@ -363,13 +368,14 @@ class DraftJSMentionSelector extends React.Component<Props, State> {
             onMention,
             placeholder,
             selectorRow,
+
             startMentionMessage,
             onReturn,
             timeStampedCommentsEnabled,
             timeStampLabel = '',
         } = this.props;
-        const { contacts, internalEditorState, error } = this.state;
-        const { handleBlur, handleChange, handleFocus, toggleTimeStamp, getTimeStampLabel } = this;
+        const { contacts, internalEditorState, error, timeStampPrepended } = this.state;
+        const { handleBlur, handleChange, handleFocus, toggleTimeStamp } = this;
         const editorState: EditorState = internalEditorState || externalEditorState;
 
         return (
@@ -402,8 +408,14 @@ class DraftJSMentionSelector extends React.Component<Props, State> {
                         customStyleMap={customStyleMap} // ✅ Pass the custom style map
                     />
 
-                    {isRequired && timeStampedCommentsEnabled && (
-                        <Toggle className="comment-Timestamp-toggle" label={timeStampLabel} onChange={noop} />
+                    {isRequired && allowVideoTimeStamps && (
+                        <>
+                            <Toggle
+                                label={timeStampLabel}
+                                isOn={timeStampPrepended}
+                                onChange={() => toggleTimeStamp(editorState)}
+                            />
+                        </>
                     )}
                 </FormInput>
             </div>
