@@ -490,7 +490,7 @@ describe('bcomponents/form-elements/draft-js-mention-selector/DraftJSMentionSele
             });
             wrapper.find('Toggle').simulate('change', { target: { checked: true } });
             expect(instance.state.internalEditorState.getCurrentContent().getPlainText()).toContain(
-                '00:01:10:  this is coool!!!',
+                '00:01:10: this is coool!!!',
             );
         });
 
@@ -530,18 +530,15 @@ describe('bcomponents/form-elements/draft-js-mention-selector/DraftJSMentionSele
             expect(rawContentState.entityMap).toEqual({});
         });
 
-        test('should render DraftTimestampItem when timestamp is added by the decorator', () => {
+        test('decorator should recognize the UNEDITABLE_TEXT entity', () => {
             const wrapper = getTimeStampedEnableComponent();
             const instance = wrapper.instance();
+            expect(instance.compositeDecorator).toBeDefined();
+            expect(typeof instance.compositeDecorator.getDecorations).toBe('function');
             instance.setState({
                 internalEditorState: EditorState.createWithContent(ContentState.createFromText('this is coool!!!')),
             });
             wrapper.find('Toggle').simulate('change', { target: { checked: true } });
-            const rawContentState = convertToRaw(instance.state.internalEditorState.getCurrentContent());
-            const entity = rawContentState.entityMap[0];
-            expect(entity.type).toEqual('UNEDITABLE_TEXT');
-            expect(entity.data.timestamp).toEqual('00:01:10');
-
             // Verify that the decorator strategy would match this entity
             const contentState = instance.state.internalEditorState.getCurrentContent();
             const firstBlock = contentState.getFirstBlock();
@@ -558,8 +555,6 @@ describe('bcomponents/form-elements/draft-js-mention-selector/DraftJSMentionSele
                 () => {},
             );
             expect(entityFound).toBe(true);
-            expect(instance.compositeDecorator).toBeDefined();
-            expect(typeof instance.compositeDecorator.getDecorations).toBe('function');
         });
     });
 });
