@@ -65,7 +65,6 @@ type Props = {
     timeStampLabel?: string | null,
     timeStampedCommentsEnabled?: boolean,
     validateOnBlur?: boolean,
-    timeStampToggleOn?: boolean,
     timeStampLabel?: string,
 };
 
