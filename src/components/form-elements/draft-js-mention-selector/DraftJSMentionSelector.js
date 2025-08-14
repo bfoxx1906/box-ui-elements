@@ -63,7 +63,6 @@ type Props = {
     selectorRow?: React.Element<any>,
     startMentionMessage?: React.Node,
     validateOnBlur?: boolean,
-    timeStampToggleOn?: boolean,
     timeStampLabel?: string,
 };
 

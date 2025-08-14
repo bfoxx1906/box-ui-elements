@@ -58,7 +58,6 @@ const getEditorState = (shouldFocusOnOpen: boolean, message?: string): EditorSta
 
 type State = {
     commentEditorState: any,
-    timeStampToggleOn: boolean,
 };
 
 class CommentForm extends React.Component<CommentFormProps, State> {
@@ -70,7 +69,6 @@ class CommentForm extends React.Component<CommentFormProps, State> {
 
     state = {
         commentEditorState: getEditorState(this.props.shouldFocusOnOpen, this.props.tagged_message),
-        timeStampToggleOn: true,
     };
 
     componentDidUpdate({ isOpen: prevIsOpen }: Props): void {
@@ -104,7 +102,6 @@ class CommentForm extends React.Component<CommentFormProps, State> {
 
         this.setState({
             commentEditorState: getEditorState(false),
-            timeStampToggleOn: false,
         });
     };
 
@@ -157,7 +154,6 @@ class CommentForm extends React.Component<CommentFormProps, State> {
             'bcs-time-stamped-comments': allowVideoTimeStamps,
         });
 
-        const { timeStampToggleOn } = this.state;
         return (
             <Media className={inputContainerClassNames}>
                 {!isEditing && !!user && (
@@ -177,7 +173,6 @@ class CommentForm extends React.Component<CommentFormProps, State> {
                             timeStampedCommentsEnabled={allowVideoTimeStamps}
                             isDisabled={isDisabled}
                             isRequired={isOpen}
-                            timeStampToggleOn={timeStampToggleOn}
                             name="commentText"
                             label={formatMessage(messages.commentLabel)}
                             timeStampLabel={formatMessage(messages.commentTimestampLabel)}
