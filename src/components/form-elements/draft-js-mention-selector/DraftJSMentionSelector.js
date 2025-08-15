@@ -464,7 +464,7 @@ class DraftJSMentionSelector extends React.Component<Props, State> {
             startMentionMessage,
             onReturn,
             timeStampedCommentsEnabled,
-            timeStampLabel,
+            timeStampLabel = '',
         } = this.props;
         const { contacts, internalEditorState, error, timeStampPrepended } = this.state;
         const { handleBlur, handleChange, handleFocus, toggleTimeStamp } = this;
