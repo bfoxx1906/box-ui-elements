@@ -65,7 +65,6 @@ type Props = {
     timeStampLabel?: string | null,
     timeStampedCommentsEnabled?: boolean,
     validateOnBlur?: boolean,
-    timeStampLabel?: string,
 };
 
 type State = {
@@ -464,8 +463,8 @@ class DraftJSMentionSelector extends React.Component<Props, State> {
             selectorRow,
             startMentionMessage,
             onReturn,
-            timeStampLabel,
             timeStampedCommentsEnabled,
+            timeStampLabel,
         } = this.props;
         const { contacts, internalEditorState, error, timeStampPrepended } = this.state;
         const { handleBlur, handleChange, handleFocus, toggleTimeStamp } = this;
