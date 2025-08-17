@@ -1,12 +1,14 @@
-import { http, HttpResponse } from 'msw';
 import type { Meta, StoryObj } from '@storybook/react';
+import { http, HttpResponse } from 'msw';
+import { expect, userEvent, waitFor, within } from 'storybook/test';
 import { Download, SignMeOthers } from '@box/blueprint-web-assets/icons/Fill/index';
 import { Sign } from '@box/blueprint-web-assets/icons/Line';
-import { expect, userEvent, waitFor, within } from 'storybook/test';
 import noop from 'lodash/noop';
+
 import ContentExplorer from '../../ContentExplorer';
 import { DEFAULT_HOSTNAME_API } from '../../../../constants';
 import { mockMetadata, mockSchema } from '../../../common/__mocks__/mockMetadata';
+import { mockRootFolder } from '../../../common/__mocks__/mockRootFolder';
 
 // The intent behind relying on mockMetadata is to allow a developer to paste in their own metadata template schema for use with live API calls.
 const { scope: templateScope, templateKey } = mockSchema;
@@ -126,10 +128,39 @@ export const metadataViewV2WithCustomActions: Story = {
         await waitFor(() => {
             expect(canvas.getByRole('row', { name: /Child 2/i })).toBeInTheDocument();
         });
-
         const firstRow = canvas.getByRole('row', { name: /Child 2/i });
         const ellipsesButton = within(firstRow).getByRole('button', { name: 'Action menu' });
         userEvent.click(ellipsesButton);
+    },
+};
+
+const initialFilterActionBarProps = {
+    initialFilterValues: {
+        'industry-filter': { value: ['Legal'] },
+        'mimetype-filter': { value: ['boxnoteType', 'documentType', 'threedType'] },
+        'role-filter': { value: ['Developer', 'Business Owner', 'Marketing'] },
+    },
+};
+
+export const metadataViewV2WithInitialFilterValues: Story = {
+    args: {
+        ...metadataViewV2ElementProps,
+        metadataViewProps: {
+            columns,
+            actionBarProps: initialFilterActionBarProps,
+        },
+    },
+    play: async ({ canvas }) => {
+        // Wait for chips to update with initial values
+        await waitFor(() => {
+            expect(canvas.getByRole('button', { name: /Industry/i })).toHaveTextContent(/\(1\)/);
+        });
+        // Other chips should reflect initialized values
+        const contactRoleChip = canvas.getByRole('button', { name: /Contact Role/i });
+        expect(contactRoleChip).toHaveTextContent(/\(3\)/);
+
+        const fileTypeChip = canvas.getByRole('button', { name: /Box Note/i });
+        expect(fileTypeChip).toHaveTextContent(/\+2/);
     },
 };
 
@@ -149,6 +180,9 @@ const meta: Meta<typeof ContentExplorer> = {
                 }),
                 http.get(`${DEFAULT_HOSTNAME_API}/2.0/metadata_templates/enterprise/templateName/schema`, () => {
                     return HttpResponse.json(mockSchema);
+                }),
+                http.get(`${DEFAULT_HOSTNAME_API}/2.0/folders/:id`, () => {
+                    return HttpResponse.json(mockRootFolder);
                 }),
             ],
         },
