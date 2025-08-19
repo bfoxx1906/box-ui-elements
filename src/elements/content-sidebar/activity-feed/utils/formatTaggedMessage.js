@@ -12,10 +12,10 @@ import UserLink from '../common/user-link';
 // mentions: ([@＠﹫]\[[0-9]+:[^\]]+])
 // urls: (?:\b)((?:(?:ht|f)tps?:\/\/)[\w\._\-]+(:\d+)?(\/[\w\-_\.~\+\/#\?&%=:\[\]@!$'\(\)\*;,]*)?)
 // NOTE: There are useless escapes in the regex below, should probably remove them when safe
-// eslint-disable-next-line
+/* eslint-disable */
 const splitRegex =
     /((?:[@＠﹫]\[[0-9]+:[^\]]+])|(?:\b(?:(?:ht|f)tps?:\/\/)[\w\._\-]+(?::\d+)?(?:\/[\w\-_\.~\+\/#\?&%=:\[\]@!$'\(\)\*;,]*)?))/gim;
-
+/* eslint-disable */
 /**
  * Converts a timestamp string (hh:mm:ss) to total seconds
  * @param {string} timestamp The timestamp string in format "hh:mm:ss"
@@ -38,9 +38,14 @@ const convertTimestampToSeconds = (timestamp: string): number => {
  * @returns {React.Node} A React Fragment with formatted timestamp
  */
 const formatTimestamp = (text: string, timestampMatch: RegExpMatchArray, contentKey: string): React.Node => {
-    const [, timestamp] = timestampMatch;
-    const beforeTimestamp = text.substring(0, timestampMatch.index);
-    const afterTimestamp = text.substring(timestampMatch.index + timestamp.length);
+    const timestamp = timestampMatch?.[0];
+    const textAfterTimestamp = text.replace(timestamp ?? '', '');
+    if (!timestamp) {
+        return text;
+    }
+
+    const strippedTimestamp = timestamp.replace(/#\[|\]/g, '');
+
     const handleClick = e => {
         e.preventDefault();
         const videoContainer = document.querySelector('.bp-media-dash');
@@ -54,11 +59,12 @@ const formatTimestamp = (text: string, timestampMatch: RegExpMatchArray, content
     };
     return (
         <React.Fragment key={contentKey}>
-            {beforeTimestamp}
-            <Link href={`#${timestamp}`} onClick={handleClick}>
-                {timestamp}
-            </Link>
-            {afterTimestamp}
+            <div className="bcs-video-comment-timestamp-container">
+                <Link href={`#${timestamp}`} className="bcs-comment-timestamp" onClick={handleClick}>
+                    {strippedTimestamp}
+                </Link>
+            </div>
+            {textAfterTimestamp}
         </React.Fragment>
     );
 };
@@ -104,7 +110,8 @@ const formatTaggedMessage = (
 
         // Check for timestamp in first item only
         if (contentIndex === 0 && !shouldReturnString) {
-            const timestampMatch = text.match(/(\d{1,2}:\d{2}:\d{2})/);
+            const timestampMatch = text.match(/#\[\d{1,2}:\d{2}:\d{2}\]/);
+
             if (timestampMatch) {
                 return formatTimestamp(text, timestampMatch, contentKey);
             }

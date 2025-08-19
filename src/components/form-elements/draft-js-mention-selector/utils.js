@@ -139,7 +139,8 @@ function getFormattedCommentText(editorState: EditorState): { hasMention: boolea
                         blockMapStringArr.push(stringToAdd);
                         hasMention = true;
                     } else {
-                        blockMapStringArr.push(text.substring(start, end));
+                        const stringToAdd = `#[${text.substring(start, end)}]`;
+                        blockMapStringArr.push(stringToAdd);
                     }
                 } else {
                     blockMapStringArr.push(text.substring(start, end));

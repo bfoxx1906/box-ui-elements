@@ -3,6 +3,22 @@
 .bcs-ActivityMessage {
     white-space: pre-wrap;
 
+    .bcs-video-comment-timestamp-container {
+        color: $bdl-box-blue-80;
+        font-size: $bdl-fontSize--dejaBlue;
+        line-height: $bdl-line-height;
+        border-radius: $bdl-border-radius-size;
+        background-color: $bdl-box-blue-10;
+        display: inline-block;
+        padding: 4px;
+
+        .link {
+            &:hover {
+                text-decoration: none !important;
+            }
+        }
+    }
+
     .link {
         color: $bdl-box-blue;
         white-space: normal;
