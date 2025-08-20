@@ -439,12 +439,13 @@ describe('elements/content-sidebar/ActivityFeed/activity-feed/ActivityFeed', () 
         });
 
         const instance = wrapper.instance();
-        const commentForm = wrapper.find('CommentForm').first();
+        const commentForm = wrapper.find('ForwardRef(withFeatureConsumer(CommentForm))').first();
 
         instance.commentFormFocusHandler();
         expect(wrapper.state('isInputOpen')).toBe(true);
 
         commentForm.prop('createComment')({ text: 'foo' });
+
         expect(wrapper.state('isInputOpen')).toBe(false);
         expect(createCommentSpy).toHaveBeenCalledTimes(1);
     });
