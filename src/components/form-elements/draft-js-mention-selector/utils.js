@@ -136,11 +136,14 @@ function getFormattedCommentText(editorState: EditorState): { hasMention: boolea
                 if (entityKey) {
                     const entity = contentState.getEntity(entityKey);
                     const isMention = entity.getType() === 'MENTION';
-
+                    const isTimestamp = entity.getType() === UNEDITABLE_TIMESTAMP_TEXT;
                     if (isMention) {
                         const stringToAdd = `@[${entity.getData().id}:${text.substring(start + 1, end)}]`;
                         blockMapStringArr.push(stringToAdd);
                         hasMention = true;
+                    } else if (isTimestamp) {
+                        const stringToAdd = `#[${entity.getData().timestampInMilliseconds}]`;
+                        blockMapStringArr.push(stringToAdd);
                     } else {
                         // For timestamp and other entity types, add the raw text
                         blockMapStringArr.push(text.substring(start, end));
@@ -156,6 +159,12 @@ function getFormattedCommentText(editorState: EditorState): { hasMention: boolea
     // Concatenate the array of block strings with newlines
     // (Each block represents a paragraph)
     return { text: resultStringArr.join('\n'), hasMention };
+}
+
+
+function convertTimestampToMilliseconds(timestamp: string): number {
+    const [hours, minutes, seconds] = timestamp.split(':').map(Number);
+    return hours * 3600000 + minutes * 60000 + seconds * 1000;
 }
 
 export {

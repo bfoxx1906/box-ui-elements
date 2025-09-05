@@ -149,7 +149,7 @@ class DraftJSMentionSelector extends React.Component<Props, State> {
             this.props.isRequired !== prevProps.isRequired &&
             this.props.isRequired === true
         ) {
-            this.toggleTimeStamp(currentEditorState, true);
+            this.ç(currentEditorState, true);
         }
     }
 
@@ -207,14 +207,14 @@ class DraftJSMentionSelector extends React.Component<Props, State> {
         const isTimestampEntityPresent = timestampLengthIncludingSpace > 0;
         if ((!timestampToggledOn || forceOn) && !isTimestampEntityPresent) {
             // get the current timestamp
-            const timestamp = this.getVideoTimestamp();
+            const {timestamp, timestampInMilliseconds} = this.getVideoTimestamp()      
             const timestampText = `${timestamp}`;
             // Create a new entity for the timestamp. It is immutable so it will not be editable.
             // $FlowFixMe
             const timestampEntity = currentContent?.createEntity(
                 UNEDITABLE_TIMESTAMP_TEXT, // Entity type
                 'IMMUTABLE',
-                { timestamp },
+                { timestampInMilliseconds },
             );
 
             // Create a selection at the very beginning of the input box for the timestamp
@@ -238,6 +238,8 @@ class DraftJSMentionSelector extends React.Component<Props, State> {
             // Apply the timestamp entity to selected timestamp text. This will ensure that the timestamp is uneditable and that
             // the decorator will apply the proper styling to the timestamp.
             updatedContent = Modifier.applyEntity(updatedContent, selectionWithTimestamp, entityKey);
+
+            console.log(updatedContent.getEntity(entityKey).getData().timestampInMilliseconds);
 
             newtimestampToggledOn = true;
         } else {
@@ -450,20 +452,27 @@ class DraftJSMentionSelector extends React.Component<Props, State> {
         this.handleValidityStateUpdateHandler();
     };
 
-    getVideoTimestamp = () => {
+    getVideoTimestamp = (): { timestamp: string, timestampInMilliseconds: number } => {
         const mediaDashContainer: ?HTMLElement = document.querySelector('.bp-media-dash');
         // $FlowFixMe
         const video: ?HTMLVideoElement = mediaDashContainer?.querySelector('video');
 
+        const currentTime = video?.currentTime || 0;
+
         // $FlowFixMe
-        const totalSeconds = Math.floor(video?.currentTime || 0);
+        const totalSeconds = Math.floor(currentTime || 0);
 
         const hours = Math.floor(totalSeconds / 3600);
         const minutes = Math.floor((totalSeconds % 3600) / 60);
         const seconds = totalSeconds % 60;
-
-        return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+        const timestamp = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+        const timestampInMilliseconds =currentTime * 1000;
+        console.log(currentTime);
+        
+        return { timestamp, timestampInMilliseconds };
     };
+
+
 
     render() {
         const {
